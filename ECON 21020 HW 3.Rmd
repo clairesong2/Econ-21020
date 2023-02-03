@@ -1,0 +1,126 @@
+---
+title: "ECON 21020 HW 3"
+author: "Claire Song"
+date: "2023-01-31"
+output: pdf_document
+---
+
+``` {r load-libraries-data, include=FALSE}
+library(AER)
+library(dplyr)
+library(readxl)
+caschool <- read_xlsx("/Users/claireysong/Dropbox/ECON 21020/caschool.xlsx")
+```
+
+**6. The following question involves the California Test Score data set. The data set is described in Appendix 4.1 of Stock and Watson, and can be downloaded from the course website.**
+
+**(a) Load the California Test Score data set into R. How many observations do you have in the data set?**
+
+``` {r part-a}
+nrow(caschool) # calculating the number of rows (districts) in the data set
+```
+
+There are 420 observations in the California Test Score data set.
+
+**(b) The variable avginc is average district income measured in 1000s of dollars. Define a new variable, income, which is the variable avginc multiplied by 1000.**
+
+**i. What does the variable income measure?**
+
+``` {r part-b}
+caschool$income <- caschool$avginc * 1000 # creating the variable "income" by multiplying all values reported by avginc * 1000
+```
+
+The variable income represents average district income measured in dollars.
+
+**ii. What is the mean and standard deviation of avginc?**
+
+```{r part-b-ii}
+mean(caschool$avginc)
+sd(caschool$avginc)
+```
+
+The mean of *avginc* is 15.31659 (in thousands of dollars), and the standard deviation of *avginc* is 7.22589 (also in thousands of dollars.)
+
+**iii. What is the mean and standard deviation of income? Given your result to part (ii), are the mean and standard deviation for income what you expected? Why?**
+
+```{r part-b-iii}
+mean(caschool$income) # calculating the mean of the variable income
+sd(caschool$income) # calculating the standard deviation of the variable income
+```
+
+The mean of *income* is 15316.59 dollars, and the standard deviation of *income* is 7225.89 dollars. This is what I expected given the mean and standard deviation of the variable *avginc*, because *income* represents average district income measured in dollars (or 1000 times the values reported with *avginc*, which are measured in thousands of dollars), and in turn the mean and standard deviation of *income* are 1000 times those of *avginc*. The mean and standard deviation of *income* align with properties of mean and variance - multiplying a variable by a scalar (in this case, multiplying the variable *avginc* by 1000 to create the variable *income*) will lead to the mean of the variable also being multiplied by that scalar, and the variance of that variable being multiplied by the squared scalar (and by taking the square root of the variance, the standard deviation will simply be multiplied by that scalar, just as the mean was).
+
+**(c) i. What is the mean math score across all districts?**
+
+```{r part-c-i}
+mean(caschool$math_scr) # taking the mean math score (math_scr) across all observations in the data set
+```
+
+The mean math score across all districts was 653.3426 points.
+
+**ii. What fraction of districts have an average class size of 20 or fewer students? What is the mean math score in districts with average class size of 20 or fewer students?**
+
+```{r part-c-ii}
+caschool_less_20 <- caschool %>% 
+  filter(str <= 20) # creating another data frame that only contains districts with average class size of 20 or fewer students
+pct_less_20 <- nrow(caschool_less_20) / nrow(caschool) # finding the proportion of districts with average class size of 20 or fewer students in original data set
+pct_less_20
+
+mean(caschool_less_20$math_scr) # finding the mean math score in the new data frame that only contains districts with average class size of 20 or fewer students
+```
+
+0.5785714, or 57.85714% of districts have an average class size of 20 or fewer students, and the mean math score in these districts is 655.7177 points.
+
+**iii. What fraction of districts have an average class size of more than 20 students? What is the mean math score in districts with average class size greater than 20?**
+
+```{r part-c-iii}
+caschool_greater_20 <- caschool %>% filter(str > 20) # creating another data frame that only contains districts with average class size of more than 20 students
+pct_greater_20 <- nrow(caschool_greater_20) / nrow(caschool) # finding the proportion of districts with average class size of more than 20 students in original data set
+pct_greater_20
+
+mean(caschool_greater_20$math_scr) # finding the mean math score in the new data frame that only contains districts with average class size of more than 20 students
+```
+
+0.4214286, or 42.14286% of districts have an average class size greater than 20 students, and the mean math score in these districts is 650.0819 points.
+
+**iv. What is the connection between your answer in (i) and your answers in (ii) and (iii)?**
+
+Districts with an average class size of 20 or fewer students had a mean math score of 655.7177 points and composed 57.85714% of the total number of districts in the sample, while districts with an average class size greater than 20 students had a mean math score of 650.0819 points and composed 42.14286% of the total number of districts in the sample. By multiplying 655.7177 * 0.5785714 (= 379.3795, the sample conditional average math score for districts with an average class size of at most 20 students) and summing it with the product of 650.0819 * 0.4214286 (= 273.9631, the sample conditional average math score for districts with an average class size greater than 20 students), we get the mean math score of all of the districts in the sample (653.3426).
+
+**v. Calculate a test at the 10% level of whether the mean math score in districts with average class size of 20 or fewer students is equal to the mean math score in districts with average class size greater than 20. Formally state your null hypothesis in terms of population level conditional expectations. Describe your testing procedure. Can you reject the null hypothesis?**
+
+```{r part-c-v}
+n_less_20 <- nrow(caschool_less_20) # finding the number of districts with average class size of at most 20 students in original data set
+n_greater_20 <- nrow(caschool_greater_20) # finding the number of districts with average class size of more than 20 students in original data set
+
+m_less_20 <- mean(caschool_less_20$math_scr) # mean math score for districts with average class size of at most 20 students in original data set
+m_greater_20 <- mean(caschool_greater_20$math_scr) # mean math score for districts with average class size of more than 20 students in original data set
+
+sd_less_20 <- sd(caschool_less_20$math_scr) # finding standard deviation of math score for districts with average class size of at most 20 students in original data set
+sd_greater_20 <- sd(caschool_greater_20$math_scr) # finding standard deviation of math score for districts with average class size of more than 20 students in original data set
+
+ts <- (m_greater_20 - m_less_20) / sqrt(sd_less_20^2/n_less_20 + sd_greater_20^2/n_greater_20) # conducting a two-sided hypothesis test for equality in means
+2 * pnorm(q = -abs(ts), mean=0, sd=1) # finding p-value from the two-sided hypothesis test
+```
+
+Our null hypothesis is that the mean math score in districts with average class size of 20 or fewer students is equal to the mean math score in districts with average class size greater than 20 students. Our alternative hypothesis is that the mean math score in districts with average class size of 20 or fewer students is not equal to the mean math score in districts with average class size greater than 20 students.
+
+Because the p-value from our difference-in-means hypothesis test, 0.0017975, is less than the alpha level of 0.10, we reject our null at the 10% significance level. So, at the 10% significance level, our sample data contains statistically significant evidence that the mean math score in districts with average class size of 20 or fewer students is not equal to the mean math score in districts with average class size greater than 20 students.
+
+**vi. What is the covariance between avginc and mean math score? What is covariance between income and mean math score? Are the two covariances the same or different? Explain.**
+
+```{r part-c-vi}
+cov(caschool$avginc, caschool$math_scr) # calculating the covariance between avginc and mean math score (math_scr)
+cov(caschool$income, caschool$math_scr) # calculating the covariance between income and mean math score (math_scr)
+```
+
+The covariance between *avginc* and mean math score is 94.7795, while the covariance between *income* and mean math score is 94779.5. The covariance between *income* and mean math score is 1000 times the covariance between *avginc* and mean math score, which is expected because *income* measures average income in dollars, and reports values 1000 times that of *avginc*, which measures average income in thousands of dollars. 
+
+**vii. What is the correlation between avginc and mean math score? What is correlation between income and mean math score? Are the two correlations the same or different? Explain.**
+
+```{r part-c-vi9}
+cor(caschool$avginc, caschool$math_scr) # calculating the correlation between avginc and mean math score (math_scr)
+cor(caschool$income, caschool$math_scr) # calculating the correlation between income and mean math score (math_scr)
+```
+
+The correlation between *avginc* and mean math score is 0.6993981, and the correlation between *income* and mean math score is also 0.6993981. The two correlations are the same because although *income* measures average income in dollars and reports values 1000 times that of *avginc*, correlation is not affected by scalars as covariance is, as it is equal to the covariance of two variables divided by the product of their standard deviations (so the scalars cancel out from both the covariance and standard deviations when calculating correlation).
